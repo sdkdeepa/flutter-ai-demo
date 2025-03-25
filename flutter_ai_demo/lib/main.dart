@@ -31,59 +31,59 @@ class RecipeGeneratorPage extends StatefulWidget {
   const RecipeGeneratorPage({super.key});
 
   @override
-  State<RecipeGeneratorPage> createState() => _RecipeGeneratorPageState();
+  State<RecipeGeneratorPage> createState() => RecipeGeneratorPageState();
 }
 
-class _RecipeGeneratorPageState extends State<RecipeGeneratorPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _ingredientsController = TextEditingController();
-  String _selectedMealType = 'Dinner';
-  String _selectedCuisine = 'Italian';
-  String _selectedDifficulty = 'Medium';
-  String _selectedDietaryRestriction = 'None';
+class RecipeGeneratorPageState extends State<RecipeGeneratorPage> {
+  final formKey = GlobalKey<FormState>();
+  final ingredientsController = TextEditingController();
+  String selectedMealType = 'Dinner';
+  String selectedCuisine = 'Italian';
+  String selectedDifficulty = 'Medium';
+  String selectedDietaryRestriction = 'None';
   
-  String _generatedRecipe = '';
-  bool _isLoading = false;
+  String generatedRecipe = '';
+  bool isLoading = false;
 
-  final List<String> _mealTypes = [
+  final List<String> mealTypes = [
     'Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack', 'Appetizer'
   ];
   
-  final List<String> _cuisines = [
+  final List<String> cuisines = [
     'Italian', 'Mexican', 'Indian', 'Chinese', 'Japanese', 'Mediterranean', 
     'American', 'Thai', 'French', 'Vietnamese', 'Korean', 'Middle Eastern'
   ];
   
-  final List<String> _difficulties = [
+  final List<String> difficulties = [
     'Easy', 'Medium', 'Hard'
   ];
   
-  final List<String> _dietaryRestrictions = [
+  final List<String> dietaryRestrictions = [
     'None', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 
     'Keto', 'Paleo', 'Low-Carb', 'Low-Fat'
   ];
 
   @override
   void dispose() {
-    _ingredientsController.dispose();
+    ingredientsController.dispose();
     super.dispose();
   }
 
-  Future<void> _generateRecipe() async {
-    if (_formKey.currentState!.validate()) {
+  Future<void> generateRecipe() async {
+    if (formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true;
-        _generatedRecipe = '';
+        isLoading = true;
+        generatedRecipe = '';
       });
 
       final prompt = '''
 You are a professional chef specialized in creating delicious recipes. Create a recipe with the following specifications:
 
-Ingredients: ${_ingredientsController.text}
-Meal Type: $_selectedMealType
-Cuisine: $_selectedCuisine
-Difficulty: $_selectedDifficulty
-Dietary Restrictions: $_selectedDietaryRestriction
+Ingredients: ${ingredientsController.text}
+Meal Type: $selectedMealType
+Cuisine: $selectedCuisine
+Difficulty: $selectedDifficulty
+Dietary Restrictions: $selectedDietaryRestriction
 
 Please format your response with the following sections:
 1. Recipe Name (be creative and enticing)
@@ -100,32 +100,26 @@ Make sure the recipe is delicious, practical, and follows the specified dietary 
 ''';
 
       try {
-        final recipe = await _callClaudeApi(prompt);
+        final recipe = await callClaudeApi(prompt);
         setState(() {
-          _generatedRecipe = recipe;
-          _isLoading = false;
+          generatedRecipe = recipe;
+          isLoading = false;
         });
       } catch (e) {
         setState(() {
-          _generatedRecipe = "Error generating recipe: $e";
-          _isLoading = false;
+          generatedRecipe = "Error generating recipe: $e";
+          isLoading = false;
         });
       }
     }
   }
 
-  Future<String> _callClaudeApi(String prompt) async {
-    // API key should be stored securely in a real app
-    const String apiKey = 'YOUR_CLAUDE_API_KEY'; 
-    // Replace with your actual Claude API key
-    
+  Future<String> callClaudeApi(String prompt) async {
     try {
       final response = await http.post(
-        Uri.parse('https://api.anthropic.com/v1/messages'),
+        Uri.parse('http://localhost:3000/api/claude'),
         headers: {
           'Content-Type': 'application/json',
-          'anthropic-version': '2023-06-01',
-          'x-api-key': apiKey,
         },
         body: json.encode({
           'model': 'claude-3-haiku-20240307',
@@ -142,17 +136,17 @@ Make sure the recipe is delicious, practical, and follows the specified dietary 
       } else {
         // Fallback to mock response in case of API error
         debugPrint('API Error: ${response.statusCode} - ${response.body}');
-        return _getMockRecipe();
+        return getMockRecipe();
       }
     } catch (e) {
       // Fallback to mock response in case of connection error
       debugPrint('Connection error: $e');
-      return _getMockRecipe();
+      return getMockRecipe();
     }
   }
   
   // Fallback mock recipe in case of API issues
-  String _getMockRecipe() {
+  String getMockRecipe() {
     return '''
 # Zesty Mediterranean Quinoa Bowl with Roasted Vegetables
 
@@ -235,7 +229,7 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,7 +241,7 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                 const SizedBox(height: 20),
                 
                 TextFormField(
-                  controller: _ingredientsController,
+                  controller: ingredientsController,
                   decoration: const InputDecoration(
                     labelText: 'Ingredients You Have',
                     hintText: 'e.g., chicken, rice, bell peppers, onions',
@@ -274,8 +268,8 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                           border: OutlineInputBorder(),
                           filled: true,
                         ),
-                        value: _selectedMealType,
-                        items: _mealTypes.map((String type) {
+                        value: selectedMealType,
+                        items: mealTypes.map((String type) {
                           return DropdownMenuItem<String>(
                             value: type,
                             child: Text(type),
@@ -284,7 +278,7 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                         onChanged: (String? newValue) {
                           if (newValue != null) {
                             setState(() {
-                              _selectedMealType = newValue;
+                              selectedMealType = newValue;
                             });
                           }
                         },
@@ -298,8 +292,8 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                           border: OutlineInputBorder(),
                           filled: true,
                         ),
-                        value: _selectedCuisine,
-                        items: _cuisines.map((String cuisine) {
+                        value: selectedCuisine,
+                        items: cuisines.map((String cuisine) {
                           return DropdownMenuItem<String>(
                             value: cuisine,
                             child: Text(cuisine),
@@ -308,7 +302,7 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                         onChanged: (String? newValue) {
                           if (newValue != null) {
                             setState(() {
-                              _selectedCuisine = newValue;
+                              selectedCuisine = newValue;
                             });
                           }
                         },
@@ -327,8 +321,8 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                           border: OutlineInputBorder(),
                           filled: true,
                         ),
-                        value: _selectedDifficulty,
-                        items: _difficulties.map((String difficulty) {
+                        value: selectedDifficulty,
+                        items: difficulties.map((String difficulty) {
                           return DropdownMenuItem<String>(
                             value: difficulty,
                             child: Text(difficulty),
@@ -337,7 +331,7 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                         onChanged: (String? newValue) {
                           if (newValue != null) {
                             setState(() {
-                              _selectedDifficulty = newValue;
+                              selectedDifficulty = newValue;
                             });
                           }
                         },
@@ -351,8 +345,8 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                           border: OutlineInputBorder(),
                           filled: true,
                         ),
-                        value: _selectedDietaryRestriction,
-                        items: _dietaryRestrictions.map((String restriction) {
+                        value: selectedDietaryRestriction,
+                        items: dietaryRestrictions.map((String restriction) {
                           return DropdownMenuItem<String>(
                             value: restriction,
                             child: Text(restriction),
@@ -361,7 +355,7 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                         onChanged: (String? newValue) {
                           if (newValue != null) {
                             setState(() {
-                              _selectedDietaryRestriction = newValue;
+                              selectedDietaryRestriction = newValue;
                             });
                           }
                         },
@@ -374,19 +368,19 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _generateRecipe,
+                    onPressed: isLoading ? null : generateRecipe,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     ),
-                    child: _isLoading 
-                      ? const CircularProgressIndicator(color: Colors.white)
+                    child: isLoading 
+                      ? const CircularProgressIndicator(color: Colors.blue)
                       : const Text('Generate Recipe', style: TextStyle(fontSize: 16)),
                   ),
                 ),
                 
-                if (_isLoading)
+                if (isLoading)
                   const Center(
                     child: Padding(
                       padding: EdgeInsets.all(24.0),
@@ -399,7 +393,7 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                     ),
                   ),
                 
-                if (_generatedRecipe.isNotEmpty) ...[
+                if (generatedRecipe.isNotEmpty) ...[
                   const SizedBox(height: 30),
                   Container(
                     decoration: BoxDecoration(
@@ -448,7 +442,7 @@ A vibrant, nutritious bowl that brings together the bright flavors of the Medite
                         ),
                         Padding(
                           padding: const EdgeInsets.all(16.0),
-                          child: Text(_generatedRecipe),
+                          child: Text(generatedRecipe),
                         ),
                       ],
                     ),
